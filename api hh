@@ -1,0 +1,121 @@
+import random
+from random import randint
+
+class Cards:
+    def __init__(self):
+        self.data = {}
+        self.rows = 3
+        self.cols = 9
+        self.nums_in_row = 5
+
+    def generate_unique_numbers(self, counte, minbound, maxbound):
+        ret = set()
+        while len(ret) != counte:
+            ret.add(randint(minbound, maxbound))
+        return ret
+
+    def cards(self):
+        count = self.nums_in_row * self.rows
+        uniques = self.generate_unique_numbers(count, 1, 90)
+
+        for i in range(0, self.rows):
+            tmp = []
+            count = 5
+            uniques = sorted(list(uniques))
+            while count != 0:
+                tmp.append(uniques.pop())
+                count -= 1
+
+            empty_nums_count = self.cols - self.nums_in_row
+            for j in range(0, empty_nums_count):
+                random_index_1 = randint(0, len(tmp))
+                tmp.insert(random_index_1, 0)
+
+            for idx, num in enumerate(tmp):
+                self.data[((i * 10) + (idx + 1))] = num
+        global data
+        return self.data
+
+    def cards_form(self, name):
+        delimiter = '--------------------------'
+        if name == 'Игрок!':
+            delimiter_1 = '-' * 10
+        else:
+            delimiter_1 = '-' * 8
+        ret = delimiter_1 + name + delimiter_1 + '\n'
+        for i in range(0, self.rows):
+            for j in range(0, self.cols):
+                index = ((i * 10) + (j + 1))
+                if index in self.data.keys():
+                    num = self.data[index]
+                    if num == 0:
+                        ret += '  '
+                    elif num == -1:
+                        ret += ' -'
+                    elif num < 10:
+                        ret += f' {str(num)}'
+                    else:
+                        ret += str(num)
+                else:
+                    ret += '  '
+
+                if (j + 1) % 9 == 0:
+                    ret += '\n'
+                else:
+                    ret += ' '
+
+        return ret + delimiter
+    def __str__(self):
+        return self.cards_form("")
+    def __len__(self):
+        return len(self.data)
+    def __getitem__(self, index):
+        return self.data[index]
+    def __contains__(self, key):
+        return key in self.data.keys()
+    def add(self, key, value):
+        self.data[key] = value
+    def __eq__(self, other):
+        return self.data == other.data and self.rows == other.rows and self.cols == other.cols and self.nums_in_row == other.nums_in_row
+    def __ne__(self, other):
+        return not self.__eq__(other)
+cards_player = Cards()
+cards_comp = Cards()
+while True:
+    print('1. игра против ПК')
+    print('2. игра ПК против ПК')
+    print('3. игра Игрок против Игрока')
+    print('4. ВЫход')
+
+    num = input('Введите номер:')
+    if num == '1':
+        while True:
+            if str(data) == '':
+                break
+            cards_player.cards()
+            print(cards_player.cards_form('Игрок!'))
+            print('                                       ')
+            cards_comp.cards()
+            print(cards_comp.cards_form('Компьютер!'))
+            x1 = random.randint(1, 90)
+            print(x1)
+            ans = input('Зачеркнуть(z)/продолжить(p)')
+            if ans == 'z':
+                if str(x1) in str(cards_player.data):
+                    print('Отлично! Цифра зачёркнута')
+                    cards_player.data[cards_player.data.index(x1)] = -1
+                else:
+                    print('Неправильно! Вы проиграли')
+
+            elif ans == 'p':
+                if str(x1) in str(cards_player.data):
+                    print('Неправильно! Вы проиграли')
+                else:
+                    print('Правильно!')
+                    pass
+    elif num == '2':
+        pass
+    elif num == '3':
+        pass
+    elif num == '4':
+        break
