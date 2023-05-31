@@ -1,121 +1,53 @@
-import random
-from random import randint
+import pprint
+import statistics
+import requests
+from collections import Counter
+DOMAIN = 'https://api.hh.ru/'
+url_vacancies = f'{DOMAIN}vacancies'
+params = {
+    'text': 'python developer',
+    'page': 1,
+    'area': 1,
+    'per_page': 100
+}
+result = requests.get(url_vacancies, params=params).json()
 
-class Cards:
-    def __init__(self):
-        self.data = {}
-        self.rows = 3
-        self.cols = 9
-        self.nums_in_row = 5
 
-    def generate_unique_numbers(self, counte, minbound, maxbound):
-        ret = set()
-        while len(ret) != counte:
-            ret.add(randint(minbound, maxbound))
-        return ret
+items = result['items']
+salaries = []
+for item in items:
+    salary = item.get('salary')
+    if salary is not None:
+        salary2 = salary['from']
+        if salary2 is not None:
+            salaries.append(int(salary2))
 
-    def cards(self):
-        count = self.nums_in_row * self.rows
-        uniques = self.generate_unique_numbers(count, 1, 90)
+medi = statistics.median(salaries)
+print('Средняя зарплата:', medi, 'рублей')
+headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'}
 
-        for i in range(0, self.rows):
-            tmp = []
-            count = 5
-            uniques = sorted(list(uniques))
-            while count != 0:
-                tmp.append(uniques.pop())
-                count -= 1
+result_list = []
+for _ in range(20):
+    data = requests.get(url, headers=headers, params=params).json()
+    result_list.extend(data['items'])
 
-            empty_nums_count = self.cols - self.nums_in_row
-            for j in range(0, empty_nums_count):
-                random_index_1 = randint(0, len(tmp))
-                tmp.insert(random_index_1, 0)
-
-            for idx, num in enumerate(tmp):
-                self.data[((i * 10) + (idx + 1))] = num
-        global data
-        return self.data
-
-    def cards_form(self, name):
-        delimiter = '--------------------------'
-        if name == 'Игрок!':
-            delimiter_1 = '-' * 10
-        else:
-            delimiter_1 = '-' * 8
-        ret = delimiter_1 + name + delimiter_1 + '\n'
-        for i in range(0, self.rows):
-            for j in range(0, self.cols):
-                index = ((i * 10) + (j + 1))
-                if index in self.data.keys():
-                    num = self.data[index]
-                    if num == 0:
-                        ret += '  '
-                    elif num == -1:
-                        ret += ' -'
-                    elif num < 10:
-                        ret += f' {str(num)}'
-                    else:
-                        ret += str(num)
-                else:
-                    ret += '  '
-
-                if (j + 1) % 9 == 0:
-                    ret += '\n'
-                else:
-                    ret += ' '
-
-        return ret + delimiter
-    def __str__(self):
-        return self.cards_form("")
-    def __len__(self):
-        return len(self.data)
-    def __getitem__(self, index):
-        return self.data[index]
-    def __contains__(self, key):
-        return key in self.data.keys()
-    def add(self, key, value):
-        self.data[key] = value
-    def __eq__(self, other):
-        return self.data == other.data and self.rows == other.rows and self.cols == other.cols and self.nums_in_row == other.nums_in_row
-    def __ne__(self, other):
-        return not self.__eq__(other)
-cards_player = Cards()
-cards_comp = Cards()
-while True:
-    print('1. игра против ПК')
-    print('2. игра ПК против ПК')
-    print('3. игра Игрок против Игрока')
-    print('4. ВЫход')
-
-    num = input('Введите номер:')
-    if num == '1':
-        while True:
-            if str(data) == '':
-                break
-            cards_player.cards()
-            print(cards_player.cards_form('Игрок!'))
-            print('                                       ')
-            cards_comp.cards()
-            print(cards_comp.cards_form('Компьютер!'))
-            x1 = random.randint(1, 90)
-            print(x1)
-            ans = input('Зачеркнуть(z)/продолжить(p)')
-            if ans == 'z':
-                if str(x1) in str(cards_player.data):
-                    print('Отлично! Цифра зачёркнута')
-                    cards_player.data[cards_player.data.index(x1)] = -1
-                else:
-                    print('Неправильно! Вы проиграли')
-
-            elif ans == 'p':
-                if str(x1) in str(cards_player.data):
-                    print('Неправильно! Вы проиграли')
-                else:
-                    print('Правильно!')
-                    pass
-    elif num == '2':
-        pass
-    elif num == '3':
-        pass
-    elif num == '4':
+    if data['page'] == data['pages']:
         break
+    else:
+        params['page'] = data['page'] + 1
+skills_list = []
+
+for vacancy in result_list:
+    text = str(vacancy['snippet']).replace('<highlighttext>', '').replace('</highlighttext>', '').replace('\n', ' ').lower()
+
+    words = text.split()
+    stop_words = ['и', 'в', 'на', 'не', 'что', 'об', 'с', 'к', 'по', 'из', 'для', 'за', 'со', 'от', 'как', 'до', 'о', 'ли', 'уже', 'это', 'еще', 'быть', 'все', 'но', 'он', 'она', 'они', 'оно', 'нет', 'без', 'бы', 'мы', 'ты', 'ее', 'их', 'этот', 'который', 'какой', 'то', 'тот', 'вы', 'ваш', 'ваше', 'весь', 'их', 'же', 'нас', 'нам', 'мне', 'мой', 'моя', 'мы', 'наш', 'почти', 'разве', 'также', 'такой', 'откуда', 'так', 'надо']
+
+    words = [word for word in words if word not in stop_words and len(word) > 2]
+
+    skills_list += words
+
+skills_counter = Counter(skills_list)
+print(skills_counter.most_common(10))
+
